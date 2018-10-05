@@ -28,8 +28,10 @@ CREATE TABLE `fileinfo` (
   `originalName` varchar(100) NOT NULL,
   `fileLocation` text NOT NULL,
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  `applicationID` varchar(255) NOT NULL DEFAULT 'unknown',
+  `applicationMetaData` text,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -38,7 +40,6 @@ CREATE TABLE `fileinfo` (
 
 LOCK TABLES `fileinfo` WRITE;
 /*!40000 ALTER TABLE `fileinfo` DISABLE KEYS */;
-INSERT INTO `fileinfo` VALUES (1,'guid1','string','locaiton1','2018-10-03 06:53:18');
 /*!40000 ALTER TABLE `fileinfo` ENABLE KEYS */;
 UNLOCK TABLES;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -51,4 +52,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-10-02 19:07:12
+-- Dump completed on 2018-10-05 17:16:42

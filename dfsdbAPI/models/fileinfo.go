@@ -16,6 +16,8 @@ type Fileinfo struct {
 	OriginalName string    `orm:"column(originalName);size(100)"`
 	FileLocation string    `orm:"column(fileLocation)"`
 	Timestamp    time.Time `orm:"column(timestamp);type(timestamp);auto_now"`
+	ApplicationID string    `orm:"column(applicationID);size(255)"`
+	ApplicationMetaData string    `orm:"column(applicationMetaData)"`
 }
 
 func (t *Fileinfo) TableName() string {
@@ -47,10 +49,27 @@ func GetFileinfoById(id int) (v *Fileinfo, err error) {
 
 // GetAllFileinfo retrieves all Fileinfo matches certain condition. Returns empty list if
 // no records exist
+func sliceDelete(origin []Fileinfo,fileinfo Fileinfo)([]Fileinfo,int){
+	var index int
+	for i := 0; i < len(origin); i++ {
+		if origin[i]==fileinfo {
+			origin = append(origin[:i], origin[i+1:]...)
+			i-- // maintain the correct index
+			index=i
+		}
+	}
+	return origin,index
+}
+func changeTimeFormat(t time.Time)time.Time{
+	tstr:=t.Format("2006-01-02 15:04:05")
+	t,_=time.Parse("2006-01-02 15:04:05",tstr)
+	return t
+}
 func GetAllFileinfo(query map[string]string, fields []string, sortby []string, order []string,
-	offset int64, limit int64) (ml []interface{}, err error) {
+	offset int64, limit int64,timeFilter map[string]string) (ml []interface{}, err error) {
 	o := orm.NewOrm()
 	qs := o.QueryTable(new(Fileinfo))
+
 	// query k=v
 	for k, v := range query {
 		// rewrite dot-notation to Object__Attribute
@@ -59,6 +78,7 @@ func GetAllFileinfo(query map[string]string, fields []string, sortby []string, o
 			qs = qs.Filter(k, (v == "true" || v == "1"))
 		} else {
 			qs = qs.Filter(k, v)
+			fmt.Println(k)
 		}
 	}
 	// order by:
@@ -100,9 +120,55 @@ func GetAllFileinfo(query map[string]string, fields []string, sortby []string, o
 		}
 	}
 
+
 	var l []Fileinfo
 	qs = qs.OrderBy(sortFields...)
 	if _, err = qs.Limit(limit, offset).All(&l, fields...); err == nil {
+		var beginTime time.Time
+		var stopTime time.Time
+		for k, v := range timeFilter {
+			fmt.Println("k:",k,"v:",v)
+			if k==""{
+				var nl []Fileinfo
+				stopTime,_=time.Parse("2006-01-02 15:04:05",v)
+				fmt.Println(stopTime)
+				for _, vl := range l {
+					vlt:=changeTimeFormat(vl.Timestamp)
+					if vlt.Before(stopTime){
+						nl=append(nl,vl)
+					}
+				}
+				l=nl
+			}else if v==""{
+				var nl []Fileinfo
+				beginTime,_=time.Parse("2006-01-02 15:04:05",k)
+				fmt.Println(beginTime)
+				for _, vl := range l {
+					vlt:=changeTimeFormat(vl.Timestamp)
+					if vlt.After(beginTime){
+						nl=append(nl,vl)
+					}
+				}
+				l=nl
+			}else {
+				var nl []Fileinfo
+				beginTime,_=time.Parse("2006-01-02 15:04:05",k)
+				stopTime,_=time.Parse("2006-01-02 15:04:05",v)
+				for _, vl := range l {
+					vlt:=changeTimeFormat(vl.Timestamp)
+					if vlt.After(beginTime)&&vlt.Before(stopTime){
+						nl=append(nl,vl)
+					}
+				}
+				l=nl
+			}
+			// rewrite dot-notation to Object__Attribute
+			/*beginTime,_:=time.Parse("2018-10-05 19:00:00",k)
+			stopTime,_:=time.Parse("2018-10-05 19:00:00",v)
+			for _, v := range l {
+				if v.Timestamp<=
+			}*/
+		}
 		if len(fields) == 0 {
 			for _, v := range l {
 				ml = append(ml, v)

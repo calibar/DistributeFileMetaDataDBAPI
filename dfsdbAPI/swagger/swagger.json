@@ -194,6 +194,9 @@
             "title": "Fileinfo",
             "type": "object",
             "properties": {
+                "ApplicationID": {
+                    "type": "string"
+                },
                 "FileLocation": {
                     "type": "string"
                 },

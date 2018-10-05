@@ -84,7 +84,7 @@ func (c *FileinfoController) GetAll() {
 	var query = make(map[string]string)
 	var limit int64 = 10
 	var offset int64
-
+	var timeFilter = make(map[string]string)
 	// fields: col1,col2,entity.col3
 	if v := c.GetString("fields"); v != "" {
 		fields = strings.Split(v, ",")
@@ -118,8 +118,19 @@ func (c *FileinfoController) GetAll() {
 			query[k] = v
 		}
 	}
-
-	l, err := models.GetAllFileinfo(query, fields, sortby, order, offset, limit)
+	if v:=c.GetString("timeFilter"); v !=""{
+		for _, cond := range strings.Split(v, ",") {
+			kv := strings.SplitN(cond, "||", 2)
+			if len(kv) != 2 {
+				c.Data["json"] = errors.New("Error: invalid query key/value pair")
+				c.ServeJSON()
+				return
+			}
+			k, v := kv[0], kv[1]
+			timeFilter[k] = v
+		}
+	}
+	l, err := models.GetAllFileinfo(query, fields, sortby, order, offset, limit,timeFilter)
 	if err != nil {
 		c.Data["json"] = err.Error()
 	} else {
